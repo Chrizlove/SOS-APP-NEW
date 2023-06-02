@@ -3,14 +3,15 @@ package com.chrizlove.helpapp
 import android.Manifest
 import android.app.Activity
 import android.app.ActivityManager
+import android.app.Dialog
 import android.content.BroadcastReceiver
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
@@ -19,6 +20,8 @@ import android.provider.ContactsContract
 import android.telephony.SmsManager
 import android.util.Log
 import android.view.View
+import android.view.Window
+import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -47,9 +50,8 @@ class MainActivity : AppCompatActivity(){
         binding= ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         //requesting permissions
-        requestAllPermission()
+        requestAllPermission(loadData())
 
         //recycler view is setted up
         setUpReminderRecyclerView()
@@ -99,18 +101,36 @@ class MainActivity : AppCompatActivity(){
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
             IntentFilter("my-event"));
 
-}
+    }
 
-    private fun requestAllPermission() {
+    private fun loadData(): Int {
+        val sharedPreferences=getSharedPreferences("sharedPrefs",Context.MODE_PRIVATE)
+        return sharedPreferences.getInt("serial",1)
+    }
+
+    private fun updateData(serial: Int) {
+        val sharedPreferences=getSharedPreferences("sharedPrefs",Context.MODE_PRIVATE)
+        val editor=sharedPreferences.edit()
+        editor.apply {
+            putInt("serial", serial)
+        }.apply()
+    }
+
+    private fun requestAllPermission(serial: Int) {
         //requesting permissions
-        if(!checkSMSPermission(this)){
-            requestSMSPermission()
+        Log.d("permissions",loadData().toString())
+        if(serial<=2){
+        if(!checkSMSPermission(this) || !checkLocationPermission(this)){
+            //updateSharedPreferences
+            updateData(serial+1)
+            ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.SEND_SMS),
+                PERMISSION_REQUEST_ALL)
         }
-        if(!checkLocationPermission(this)){
-            requestLocationPermission()
         }
         checkBackgroundLocation()
     }
+
 
     private fun checkBackgroundLocation() {
         if (ActivityCompat.checkSelfPermission(
@@ -199,7 +219,7 @@ class MainActivity : AppCompatActivity(){
            if(locationEnabled()){
                 fusedLocationProviderClient.lastLocation.addOnCompleteListener(this) {task->
                     if(task.result==null){
-                    //send sms withount location
+                    //send sms without location
                         sendSMS(1)
                     }
                     else{
@@ -210,7 +230,7 @@ class MainActivity : AppCompatActivity(){
                 }
             }
             else{
-               //send sms withount location
+               //send sms without location
                 sendSMS(1)
             }
         }
@@ -223,6 +243,7 @@ class MainActivity : AppCompatActivity(){
     companion object{
         private const val PERMISSION_REQUEST_ACCESS_LOCATION=100
         private const val  PERMISSION_REQUEST_SMS=99
+        private const val  PERMISSION_REQUEST_ALL=11
         private const val MY_PERMISSIONS_REQUEST_LOCATION = 96
         private const val MY_PERMISSIONS_REQUEST_BACKGROUND_LOCATION = 66
     }
@@ -257,16 +278,40 @@ class MainActivity : AppCompatActivity(){
             if(grantResults.isNotEmpty() && grantResults[0]==PackageManager.PERMISSION_DENIED){
                 //Toast.makeText(applicationContext, "Permissions Required to Operate.", Toast.LENGTH_SHORT).show()
                 //again request permission
-                requestAllPermission()
-            }
+                requestAllPermission(loadData())}
         }
         if(requestCode== PERMISSION_REQUEST_SMS){
             if(grantResults.isNotEmpty() && grantResults[0]==PackageManager.PERMISSION_DENIED){
                 //Toast.makeText(applicationContext, "Permissions Required to Operate.", Toast.LENGTH_SHORT).show()
                 //again request permission
-                requestAllPermission()
+                requestAllPermission(loadData())
             }
         }
+        if(requestCode== PERMISSION_REQUEST_ALL){
+            if(grantResults.isNotEmpty()){
+                if(grantResults[0]==PackageManager.PERMISSION_DENIED || grantResults[2]==PackageManager.PERMISSION_DENIED) {
+                    Log.d("permissions","called by onRequest")
+                    //Toast.makeText(applicationContext, "Permissions Required to Operate.", Toast.LENGTH_SHORT).show()
+                    //show alert for required permissions
+                    showPermissionsAlert()
+                }
+            }
+        }
+    }
+
+    private fun showPermissionsAlert() {
+       // val builder = AlertDialog.Builder(this)
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(false)
+        dialog.setContentView(R.layout.permission_alert_lyt)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val permission_button : Button =dialog.findViewById(R.id.permission_alert_button)
+        permission_button.setOnClickListener {
+            requestAllPermission(loadData())
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun swipeToDelete() {
@@ -287,7 +332,8 @@ class MainActivity : AppCompatActivity(){
 
         //adding contact manually
         binding.manualContactButton.setOnClickListener {
-
+            //requesting background location access
+            requestBackgroundLocationPermission()
             //checking if contact list size is less than 3
             if(checkContactListSize()) {
                 val builder = AlertDialog.Builder(this)
@@ -316,7 +362,8 @@ class MainActivity : AppCompatActivity(){
 
         //adding contact from contacts list
         binding.contactListButton.setOnClickListener {
-
+            //requesting background location access
+            requestBackgroundLocationPermission()
             //checking if contact list size is less than 3
             if(checkContactListSize()) {
                 var i = Intent(Intent.ACTION_PICK)
@@ -373,6 +420,5 @@ class MainActivity : AppCompatActivity(){
         //LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver)
         super.onDestroy()
     }
-
 
 }

@@ -4,4 +4,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="app_bg_color">#242524</color>
     <color name="app_primary">#F4511E</color>
+    <color name="permission_alert">#db0d33</color>
 </resources>

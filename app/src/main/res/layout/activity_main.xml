@@ -18,7 +18,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
-         />
+        />
 
     <TextView
         android:id="@+id/noContact"
@@ -31,6 +31,38 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Button
+        android:id="@+id/buttonSOS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:gravity="center"
+        android:text="!!! Send SOS !!!"
+        android:padding="10dp"
+        android:textSize="20dp"
+        android:textColor="@color/white"
+        android:background="@drawable/sos_round_button"
+        app:layout_constraintBottom_toTopOf="@id/addContactText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/addContactText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="bottom"
+        android:text="Add Contacts"
+        android:textColor="@color/white"
+        android:textSize="30dp"
+        android:textStyle="bold|italic"
+        app:layout_constraintBottom_toTopOf="@id/buttonsContactAdd"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
     <LinearLayout
         android:id="@+id/buttonsContactAdd"
@@ -38,10 +70,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:padding="15dp"
-        app:layout_constraintBottom_toTopOf="@+id/buttonSOS"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0"
-        tools:layout_editor_absoluteX="0dp">
+        tools:layout_editor_absoluteX="16dp">
 
         <Button
             android:id="@+id/manualContactButton"
@@ -49,39 +81,37 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Add Manually"
+            android:padding="15dp"
+            android:layout_marginRight="10dp"
+            android:textColor="@color/white"
+            android:background="@drawable/button_layout_addcontact"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.816"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.879" />
+            app:layout_constraintVertical_bias="0.879"
+            android:drawableLeft="@drawable/baseline_keyboard_24"
+            />
 
         <Button
             android:id="@+id/contactListButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:padding="15dp"
+            android:textColor="@color/white"
+            android:background="@drawable/button_layout_addcontact"
             android:text="Add from contacts"
+            android:layout_marginLeft="10dp"
             app:layout_constraintBottom_toTopOf="@+id/buttonSOS"
             app:layout_constraintEnd_toStartOf="@+id/manualContactButton"
             app:layout_constraintHorizontal_bias="0.656"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.984" />
+            app:layout_constraintVertical_bias="0.984"
+            android:drawableLeft="@drawable/baseline_contacts_24"/>
     </LinearLayout>
 
-    <Button
-        android:id="@+id/buttonSOS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
-        android:gravity="center"
-        android:text="Send SOS!!!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

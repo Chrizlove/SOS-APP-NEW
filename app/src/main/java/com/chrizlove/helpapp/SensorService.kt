@@ -14,7 +14,7 @@ import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
-import android.widget.Toast
+import android.view.KeyEvent
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -91,7 +91,7 @@ class SensorService: Service() {
         val notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         val notification: Notification = notificationBuilder.setOngoing(true)
             .setContentTitle("You are protected.")
-            .setContentText("We are there for you") // this is important, otherwise the notification will show the way
+            .setContentText("If this notification is not displaying, relaunch the app to have the SOS service active.") // this is important, otherwise the notification will show the way
             // you want i.e. it will show some default notification
             .setSmallIcon(R.drawable.btn_radio)
             .setPriority(NotificationManager.IMPORTANCE_MIN)
@@ -123,4 +123,5 @@ class SensorService: Service() {
         intent.putExtra("message", "sendSOS")
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
+
 }
