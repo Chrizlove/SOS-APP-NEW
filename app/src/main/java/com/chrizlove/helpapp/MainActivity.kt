@@ -23,6 +23,7 @@ import android.view.View
 import android.view.Window
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -36,6 +37,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.chrizlove.helpapp.databinding.ActivityMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import org.w3c.dom.Text
 
 
 class MainActivity : AppCompatActivity(){
@@ -94,7 +96,7 @@ class MainActivity : AppCompatActivity(){
 
         //button listener to send sos
         binding.buttonSOS.setOnClickListener {
-            sendSOS(this)
+            sendSOS(this,true)
         }
 
         // Register mMessageReceiver to receive messages.
@@ -173,12 +175,12 @@ class MainActivity : AppCompatActivity(){
         return false
     }
 
-    private fun sendSOS(context: Context) {
+    private fun sendSOS(context: Context, fromButton: Boolean) {
             fusedLocationProviderClient=LocationServices.getFusedLocationProviderClient(this)
-            getCurrentLocationAndSendSMS(context)
+            getCurrentLocationAndSendSMS(context, fromButton)
     }
 
-    private fun sendSMS(code: Int) {
+    private fun sendSMS(code: Int,fromButton: Boolean) {
         Log.d(TAG,"2")
         if(checkSMSPermission(this)){
             val smsManager: SmsManager
@@ -200,58 +202,47 @@ class MainActivity : AppCompatActivity(){
             Toast.makeText(applicationContext,"SMS Sent",Toast.LENGTH_SHORT).show()
         }
         else{
-            requestSMSPermission()
+            //show lack of permission alert
+            if(fromButton) showPermissionsAlert(1)
         }
     }
 
-    private fun requestSMSPermission() {
-        ActivityCompat.requestPermissions(this,
-            arrayOf(Manifest.permission.SEND_SMS), PERMISSION_REQUEST_SMS)
-    }
 
     private fun checkSMSPermission(context: Context): Boolean {
         return ActivityCompat.checkSelfPermission(context,Manifest.permission.SEND_SMS)==PackageManager.PERMISSION_GRANTED
     }
 
-    private fun getCurrentLocationAndSendSMS(context: Context) {
-        Log.d(TAG,"1")
+    private fun getCurrentLocationAndSendSMS(context: Context, fromButton: Boolean) {
+        Log.d(TAG,"asked location permission")
         if(checkLocationPermission(context)){
            if(locationEnabled()){
                 fusedLocationProviderClient.lastLocation.addOnCompleteListener(this) {task->
                     if(task.result==null){
                     //send sms without location
-                        sendSMS(1)
+                        sendSMS(1,fromButton)
                     }
                     else{
                         //SEND sms when gotten location
                         location=task.result
-                        sendSMS(2)
+                        sendSMS(2,fromButton)
                     }
                 }
             }
             else{
                //send sms without location
-                sendSMS(1)
+                sendSMS(1,fromButton)
             }
         }
         else{
-            //request permission
-            requestLocationPermission()
+            //show lack of permission alert
+            if(fromButton) showPermissionsAlert(1)
         }
     }
 
     companion object{
-        private const val PERMISSION_REQUEST_ACCESS_LOCATION=100
-        private const val  PERMISSION_REQUEST_SMS=99
         private const val  PERMISSION_REQUEST_ALL=11
         private const val MY_PERMISSIONS_REQUEST_LOCATION = 96
         private const val MY_PERMISSIONS_REQUEST_BACKGROUND_LOCATION = 66
-    }
-
-    private fun requestLocationPermission() {
-            ActivityCompat.requestPermissions(this,
-                arrayOf( Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION),
-                PERMISSION_REQUEST_ACCESS_LOCATION)
     }
 
     private fun locationEnabled(): Boolean {
@@ -274,38 +265,29 @@ class MainActivity : AppCompatActivity(){
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode== PERMISSION_REQUEST_ACCESS_LOCATION){
-            if(grantResults.isNotEmpty() && grantResults[0]==PackageManager.PERMISSION_DENIED){
-                //Toast.makeText(applicationContext, "Permissions Required to Operate.", Toast.LENGTH_SHORT).show()
-                //again request permission
-                requestAllPermission(loadData())}
-        }
-        if(requestCode== PERMISSION_REQUEST_SMS){
-            if(grantResults.isNotEmpty() && grantResults[0]==PackageManager.PERMISSION_DENIED){
-                //Toast.makeText(applicationContext, "Permissions Required to Operate.", Toast.LENGTH_SHORT).show()
-                //again request permission
-                requestAllPermission(loadData())
-            }
-        }
         if(requestCode== PERMISSION_REQUEST_ALL){
             if(grantResults.isNotEmpty()){
                 if(grantResults[0]==PackageManager.PERMISSION_DENIED || grantResults[2]==PackageManager.PERMISSION_DENIED) {
                     Log.d("permissions","called by onRequest")
                     //Toast.makeText(applicationContext, "Permissions Required to Operate.", Toast.LENGTH_SHORT).show()
                     //show alert for required permissions
-                    showPermissionsAlert()
+                    showPermissionsAlert(0)
                 }
             }
         }
     }
 
-    private fun showPermissionsAlert() {
+    private fun showPermissionsAlert(code: Int) {
        // val builder = AlertDialog.Builder(this)
         val dialog = Dialog(this)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setCancelable(false)
         dialog.setContentView(R.layout.permission_alert_lyt)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val permission_message: TextView= dialog.findViewById(R.id.permission_alert_message)
+        if(code==1){
+            permission_message.text="Permissions are not granted. Kindly provide SMS and Location Access Permissions for the app to function by going to the Settings."
+        }
         val permission_button : Button =dialog.findViewById(R.id.permission_alert_button)
         permission_button.setOnClickListener {
             requestAllPermission(loadData())
@@ -410,7 +392,7 @@ class MainActivity : AppCompatActivity(){
             val message = intent.getStringExtra("message")
             Log.d("RECIEVED",message.toString())
             if(message.equals("sendSOS")){
-                sendSOS(applicationContext)
+                sendSOS(applicationContext,false)
             }
         }
     }
